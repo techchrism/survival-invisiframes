@@ -12,6 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
+import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.RecipeChoice;
@@ -89,15 +90,17 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         while(iter.hasNext())
         {
             Recipe check = iter.next();
-            if(check instanceof ShapedRecipe)
+            if(isInvisibleRecipe(check))
             {
-                if(invisibleRecipe.equals(((ShapedRecipe) check).getKey()))
-                {
-                    getLogger().info("Removed recipe");
-                    iter.remove();
-                }
+                getLogger().info("Removed recipe");
+                iter.remove();
             }
         }
+    }
+    
+    private boolean isInvisibleRecipe(Recipe recipe)
+    {
+        return (recipe instanceof ShapedRecipe && ((ShapedRecipe) recipe).getKey().equals(invisibleRecipe));
     }
     
     public static ItemStack generateInvisibleItemFrame()
@@ -108,6 +111,15 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         meta.getPersistentDataContainer().set(invisibleKey, PersistentDataType.BYTE, (byte) 1);
         item.setItemMeta(meta);
         return item;
+    }
+    
+    @EventHandler(ignoreCancelled = true)
+    private void onCraft(PrepareItemCraftEvent event)
+    {
+        if(isInvisibleRecipe(event.getRecipe()) && !event.getView().getPlayer().hasPermission("survivalinvisiframes.craft"))
+        {
+            event.getInventory().setResult(null);
+        }
     }
     
     @EventHandler(ignoreCancelled = true)
@@ -134,6 +146,11 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         
         if(frame.getItemMeta().getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE))
         {
+            if(!p.hasPermission("survivalinvisiframes.place"))
+            {
+                event.setCancelled(true);
+                return;
+            }
             NBTEditor.set(event.getEntity(), (byte) 1, "Invisible");
             event.getEntity().getPersistentDataContainer().set(invisibleKey, PersistentDataType.BYTE, (byte) 1);
         }
