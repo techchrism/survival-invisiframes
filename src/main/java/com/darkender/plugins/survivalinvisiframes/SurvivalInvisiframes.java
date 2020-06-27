@@ -40,7 +40,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     {
         invisibleRecipe = new NamespacedKey(this, "invisible-recipe");
         invisibleKey = new NamespacedKey(this, "invisible");
-    
+        
         droppedFrames = new HashSet<>();
         getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable()
         {
@@ -50,10 +50,12 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
                 currentTick++;
                 droppedFrames.removeIf(droppedFrameLocation ->
                 {
+                    // Expire if no item found in 1 second
                     if(droppedFrameLocation.getTick() < (currentTick - 20))
                     {
                         return true;
                     }
+                    // Expire if successfully replaced
                     Item item = droppedFrameLocation.getFrame();
                     if(item != null)
                     {
@@ -129,6 +131,8 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         {
             return;
         }
+        
+        // Get the frame item that the player placed
         ItemStack frame;
         Player p = event.getPlayer();
         if(p.getInventory().getItemInMainHand().getType() == Material.ITEM_FRAME)
@@ -144,6 +148,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
             return;
         }
         
+        // If the frame item has the invisible tag, make the placed item frame invisible
         if(frame.getItemMeta().getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE))
         {
             if(!p.hasPermission("survivalinvisiframes.place"))
@@ -166,6 +171,8 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         }
         
         // This is the dumbest possible way to change the drops of an item frame
+        // Apparently, there's no api to change the dropped item
+        // So this sets up a bounding box that checks for items near the frame and converts them
         droppedFrames.add(new DroppedFrameLocation(event.getEntity().getLocation(), currentTick));
     }
 }
