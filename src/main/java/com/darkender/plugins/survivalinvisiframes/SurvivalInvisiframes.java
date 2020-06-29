@@ -82,6 +82,9 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         Bukkit.addRecipe(invisRecipe);
         
         getServer().getPluginManager().registerEvents(this, this);
+        InvisiFramesCommand invisiFramesCommand = new InvisiFramesCommand();
+        getCommand("iframe").setExecutor(invisiFramesCommand);
+        getCommand("iframe").setTabCompleter(invisiFramesCommand);
     }
     
     @Override

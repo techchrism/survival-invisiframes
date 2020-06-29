@@ -3,8 +3,15 @@ version: ${project.version}
 api-version: 1.16
 main: com.darkender.plugins.survivalinvisiframes.SurvivalInvisiframes
 author: Techdoodle
+commands:
+  iframe:
+    permission: survivalinvisiframes.get
+    description: Gives the player an invisible item frame
+    usage: /iframe
 permissions:
   survivalinvisiframes.place:
     default: true
   survivalinvisiframes.craft:
     default: true
+  survivalinvisiframes.get:
+    default: op

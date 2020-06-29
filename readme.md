@@ -10,3 +10,10 @@ Permissions:
    Allows the player to place an invisible item frame (enabled by default)
  - survivalinvisiframes.craft\
    Allows the player to craft an invisible item frame (enabled by default)
+ - survivalinvisiframes.get\
+   Allows the player to use "/iframe" to get an invisible item frame
+
+Commands:
+ - /iframe\
+   Gives the player an invisible item frame\
+   Permission: survivalinvisiframes.get
