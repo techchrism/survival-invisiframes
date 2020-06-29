@@ -1,12 +1,12 @@
 package com.darkender.plugins.survivalinvisiframes;
 
-import io.github.bananapuncher714.nbteditor.NBTEditor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -159,7 +159,8 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
                 event.setCancelled(true);
                 return;
             }
-            NBTEditor.set(event.getEntity(), (byte) 1, "Invisible");
+            ItemFrame itemFrame = (ItemFrame) event.getEntity();
+            itemFrame.setVisible(false);
             event.getEntity().getPersistentDataContainer().set(invisibleKey, PersistentDataType.BYTE, (byte) 1);
         }
     }
