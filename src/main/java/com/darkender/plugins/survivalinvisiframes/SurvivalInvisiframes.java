@@ -11,6 +11,7 @@ import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
@@ -21,6 +22,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -31,7 +33,6 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     private NamespacedKey invisibleRecipe;
     private static NamespacedKey invisibleKey;
     private Set<DroppedFrameLocation> droppedFrames;
-    private long currentTick = 0;
     
     @Override
     public void onEnable()
@@ -40,30 +41,6 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         invisibleKey = new NamespacedKey(this, "invisible");
         
         droppedFrames = new HashSet<>();
-        getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                currentTick++;
-                droppedFrames.removeIf(droppedFrameLocation ->
-                {
-                    // Expire if no item found in 1 second
-                    if(droppedFrameLocation.getTick() < (currentTick - 20))
-                    {
-                        return true;
-                    }
-                    // Expire if successfully replaced
-                    Item item = droppedFrameLocation.getFrame();
-                    if(item != null)
-                    {
-                        item.setItemStack(generateInvisibleItemFrame());
-                        return true;
-                    }
-                    return false;
-                });
-            }
-        }, 1L, 1L);
         
         ItemStack invisibleItem = generateInvisibleItemFrame();
         invisibleItem.setAmount(8);
@@ -177,6 +154,39 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         // This is the dumbest possible way to change the drops of an item frame
         // Apparently, there's no api to change the dropped item
         // So this sets up a bounding box that checks for items near the frame and converts them
-        droppedFrames.add(new DroppedFrameLocation(event.getEntity().getLocation(), currentTick));
+        DroppedFrameLocation droppedFrameLocation = new DroppedFrameLocation(event.getEntity().getLocation());
+        droppedFrames.add(droppedFrameLocation);
+        droppedFrameLocation.setRemoval((new BukkitRunnable()
+        {
+            @Override
+            public void run()
+            {
+                droppedFrames.remove(droppedFrameLocation);
+            }
+        }).runTaskLater(this, 20L));
+    }
+    
+    @EventHandler
+    private void onItemSpawn(ItemSpawnEvent event)
+    {
+        Item item = event.getEntity();
+        if(item.getItemStack().getType() != Material.ITEM_FRAME)
+        {
+            return;
+        }
+        
+        Iterator<DroppedFrameLocation> iter = droppedFrames.iterator();
+        while(iter.hasNext())
+        {
+            DroppedFrameLocation droppedFrameLocation = iter.next();
+            if(droppedFrameLocation.isFrame(item))
+            {
+                event.getEntity().setItemStack(generateInvisibleItemFrame());
+                
+                droppedFrameLocation.getRemoval().cancel();
+                iter.remove();
+                break;
+            }
+        }
     }
 }
