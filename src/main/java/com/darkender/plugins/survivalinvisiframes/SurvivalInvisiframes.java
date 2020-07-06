@@ -1,28 +1,30 @@
 package com.darkender.plugins.survivalinvisiframes;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
+import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Item;
-import org.bukkit.entity.ItemFrame;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionData;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.BoundingBox;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -32,6 +34,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
 {
     private NamespacedKey invisibleRecipe;
     private static NamespacedKey invisibleKey;
+    private static NamespacedKey indicatorSlimeKey;
     private Set<DroppedFrameLocation> droppedFrames;
     
     @Override
@@ -39,6 +42,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     {
         invisibleRecipe = new NamespacedKey(this, "invisible-recipe");
         invisibleKey = new NamespacedKey(this, "invisible");
+        indicatorSlimeKey = new NamespacedKey(this, "indicator-slime");
         
         droppedFrames = new HashSet<>();
         
@@ -60,6 +64,14 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         InvisiFramesCommand invisiFramesCommand = new InvisiFramesCommand();
         getCommand("iframe").setExecutor(invisiFramesCommand);
         getCommand("iframe").setTabCompleter(invisiFramesCommand);
+        
+        for(World world : Bukkit.getWorlds())
+        {
+            for(Chunk chunk : world.getLoadedChunks())
+            {
+                addSlimes(chunk);
+            }
+        }
     }
     
     @Override
@@ -74,6 +86,14 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
             {
                 getLogger().info("Removed recipe");
                 iter.remove();
+            }
+        }
+    
+        for(World world : Bukkit.getWorlds())
+        {
+            for(Chunk chunk : world.getLoadedChunks())
+            {
+                removeSlimes(chunk);
             }
         }
     }
@@ -93,6 +113,70 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         meta.getPersistentDataContainer().set(invisibleKey, PersistentDataType.BYTE, (byte) 1);
         item.setItemMeta(meta);
         return item;
+    }
+    
+    private Location getSlimePos(ItemFrame itemFrame)
+    {
+        return itemFrame.getLocation().getBlock().getRelative(itemFrame.getAttachedFace()).getLocation()
+                .add(0.5, 0.2, 0.5).add(itemFrame.getAttachedFace().getDirection().multiply(-0.30));
+    }
+    
+    private void addSlimeFor(ItemFrame itemFrame)
+    {
+        itemFrame.getWorld().spawn(getSlimePos(itemFrame),
+                Slime.class, slime ->
+                {
+                    slime.setSize(1);
+                    slime.setGlowing(true);
+                    slime.setInvulnerable(true);
+                    slime.setAI(false);
+                    slime.setAware(false);
+                    slime.setRemoveWhenFarAway(false);
+                    slime.setSilent(true);
+                    slime.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 1, false, false));
+                    slime.getPersistentDataContainer().set(indicatorSlimeKey, PersistentDataType.BYTE, (byte) 1);
+                });
+    }
+    
+    private void removeSlimeFor(ItemFrame itemFrame)
+    {
+        Location pos = getSlimePos(itemFrame);
+        BoundingBox check = BoundingBox.of(pos, 0.05, 0.05, 0.05);
+        for(Entity e : itemFrame.getWorld().getNearbyEntities(check))
+        {
+            if(e.getPersistentDataContainer().has(indicatorSlimeKey, PersistentDataType.BYTE) && e.getLocation().distance(pos) < 0.05)
+            {
+                e.remove();
+            }
+        }
+    }
+    
+    private void addSlimes(Chunk chunk)
+    {
+        for(Entity entity : chunk.getEntities())
+        {
+            if(entity.getType() == EntityType.ITEM_FRAME &&
+                    entity.getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE))
+            {
+                ItemFrame frame = (ItemFrame) entity;
+                if(frame.getItem().getType() == Material.AIR)
+                {
+                    addSlimeFor(frame);
+                }
+            }
+        }
+    }
+    
+    private void removeSlimes(Chunk chunk)
+    {
+        for(Entity entity : chunk.getEntities())
+        {
+            if(entity.getType() == EntityType.SLIME &&
+                    entity.getPersistentDataContainer().has(indicatorSlimeKey, PersistentDataType.BYTE))
+            {
+                entity.remove();
+            }
+        }
     }
     
     @EventHandler(ignoreCancelled = true)
@@ -139,6 +223,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
             ItemFrame itemFrame = (ItemFrame) event.getEntity();
             itemFrame.setVisible(false);
             event.getEntity().getPersistentDataContainer().set(invisibleKey, PersistentDataType.BYTE, (byte) 1);
+            addSlimeFor(itemFrame);
         }
     }
     
@@ -151,6 +236,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
             return;
         }
         
+        removeSlimeFor((ItemFrame) event.getEntity());
         // This is the dumbest possible way to change the drops of an item frame
         // Apparently, there's no api to change the dropped item
         // So this sets up a bounding box that checks for items near the frame and converts them
@@ -187,6 +273,62 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
                 iter.remove();
                 break;
             }
+        }
+    }
+    
+    @EventHandler(ignoreCancelled = true)
+    private void onChunkLoad(ChunkLoadEvent event)
+    {
+        addSlimes(event.getChunk());
+    }
+    
+    @EventHandler(ignoreCancelled = true)
+    private void onChunkUnload(ChunkUnloadEvent event)
+    {
+        removeSlimes(event.getChunk());
+    }
+    
+    @EventHandler(ignoreCancelled = true)
+    private void onEntityDamage(EntityDamageEvent event)
+    {
+        if(event.getEntityType() == EntityType.SLIME &&
+                event.getEntity().getPersistentDataContainer().has(indicatorSlimeKey, PersistentDataType.BYTE))
+        {
+            event.setCancelled(true);
+        }
+    }
+    
+    @EventHandler(ignoreCancelled = true)
+    private void onPlayerInteractEntity(PlayerInteractEntityEvent event)
+    {
+        if(event.getRightClicked().getType() == EntityType.ITEM_FRAME &&
+                event.getRightClicked().getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE))
+        {
+            ItemFrame frame = (ItemFrame) event.getRightClicked();
+            Bukkit.getScheduler().runTaskLater(this, () ->
+            {
+                if(frame.getItem().getType() != Material.AIR)
+                {
+                    removeSlimeFor(frame);
+                }
+            }, 1L);
+        }
+    }
+    
+    @EventHandler(ignoreCancelled = true)
+    private void onEntityDamageByEntity(EntityDamageByEntityEvent event)
+    {
+        if(event.getEntityType() == EntityType.ITEM_FRAME &&
+                event.getEntity().getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE))
+        {
+            ItemFrame frame = (ItemFrame) event.getEntity();
+            Bukkit.getScheduler().runTaskLater(this, () ->
+            {
+                if(frame.getItem().getType() == Material.AIR)
+                {
+                    addSlimeFor(frame);
+                }
+            }, 1L);
         }
     }
 }
