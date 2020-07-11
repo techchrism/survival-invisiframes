@@ -4,6 +4,7 @@ import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -188,7 +189,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         }
     }
     
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     private void onHangingPlace(HangingPlaceEvent event)
     {
         if(event.getEntity().getType() != EntityType.ITEM_FRAME || event.getPlayer() == null)
@@ -227,7 +228,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         }
     }
     
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     private void onHangingBreak(HangingBreakEvent event)
     {
         if(event.getEntity().getType() != EntityType.ITEM_FRAME ||
