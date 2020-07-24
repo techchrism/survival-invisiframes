@@ -5,7 +5,7 @@ main: com.darkender.plugins.survivalinvisiframes.SurvivalInvisiframes
 author: Techdoodle
 commands:
   iframe:
-    permission: survivalinvisiframes.get
+    permission: survivalinvisiframes.cmd
     description: Gives the player an invisible item frame
     usage: /iframe
 permissions:
@@ -13,5 +13,11 @@ permissions:
     default: true
   survivalinvisiframes.craft:
     default: true
+  survivalinvisiframes.cmd:
+    default: op
+  survivalinvisiframes.reload:
+    default: op
+  survivalinvisiframes.forcerecheck:
+    default: op
   survivalinvisiframes.get:
     default: op
