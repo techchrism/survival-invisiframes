@@ -47,7 +47,8 @@ public class InvisiFramesCommand implements CommandExecutor, TabCompleter
                 sendNoPermissionMessage(sender);
                 return true;
             }
-            //TODO force recheck logic
+            survivalInvisiframes.forceRecheck();
+            sender.sendMessage(ChatColor.GREEN + "Rechecked invisible item frames");
             return true;
         }
         return false;

@@ -133,6 +133,32 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         slimesEnabled = getConfig().getBoolean("slimes-enabled");
     }
     
+    public void forceRecheck()
+    {
+        if(!slimesEnabled)
+        {
+            return;
+        }
+        for(World world : Bukkit.getWorlds())
+        {
+            for(ItemFrame frame : world.getEntitiesByClass(ItemFrame.class))
+            {
+                if(frame.getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE))
+                {
+                    Slime slimeFor = getSlimeFor(frame);
+                    if(frame.getItem().getType() == Material.AIR && slimeFor == null)
+                    {
+                        addSlimeFor(frame);
+                    }
+                    else if(frame.getItem().getType() != Material.AIR && slimeFor != null)
+                    {
+                        slimeFor.remove();
+                    }
+                }
+            }
+        }
+    }
+    
     private boolean isInvisibleRecipe(Recipe recipe)
     {
         return (recipe instanceof ShapedRecipe && ((ShapedRecipe) recipe).getKey().equals(invisibleRecipe));
@@ -173,16 +199,28 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
                 });
     }
     
-    private void removeSlimeFor(ItemFrame itemFrame)
+    private Slime getSlimeFor(ItemFrame itemFrame)
     {
         Location pos = getSlimePos(itemFrame);
         BoundingBox check = BoundingBox.of(pos, 0.05, 0.05, 0.05);
         for(Entity e : itemFrame.getWorld().getNearbyEntities(check))
         {
-            if(e.getPersistentDataContainer().has(indicatorSlimeKey, PersistentDataType.BYTE) && e.getLocation().distance(pos) < 0.05)
+            if(e.getType() == EntityType.SLIME &&
+                    e.getPersistentDataContainer().has(indicatorSlimeKey, PersistentDataType.BYTE) &&
+                    e.getLocation().distance(pos) < 0.05)
             {
-                e.remove();
+                return (Slime) e;
             }
+        }
+        return null;
+    }
+    
+    private void removeSlimeFor(ItemFrame itemFrame)
+    {
+        Slime slime = getSlimeFor(itemFrame);
+        if(slime != null)
+        {
+            slime.remove();
         }
     }
     
