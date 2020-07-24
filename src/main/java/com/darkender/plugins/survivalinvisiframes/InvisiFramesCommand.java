@@ -14,6 +14,13 @@ import java.util.List;
 
 public class InvisiFramesCommand implements CommandExecutor, TabCompleter
 {
+    private SurvivalInvisiframes survivalInvisiframes;
+    
+    public InvisiFramesCommand(SurvivalInvisiframes survivalInvisiframes)
+    {
+        this.survivalInvisiframes = survivalInvisiframes;
+    }
+    
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args)
     {
@@ -29,7 +36,8 @@ public class InvisiFramesCommand implements CommandExecutor, TabCompleter
                 sendNoPermissionMessage(sender);
                 return true;
             }
-            //TODO reload logic
+            survivalInvisiframes.reload();
+            sender.sendMessage(ChatColor.GREEN + "Reloaded!");
             return true;
         }
         else if(args[0].equalsIgnoreCase("force-recheck"))

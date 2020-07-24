@@ -38,6 +38,9 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     private static NamespacedKey indicatorSlimeKey;
     private Set<DroppedFrameLocation> droppedFrames;
     
+    private boolean slimesEnabled;
+    private boolean firstLoad = true;
+    
     @Override
     public void onEnable()
     {
@@ -55,6 +58,8 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         meta.setBasePotionData(new PotionData(PotionType.INVISIBILITY));
         invisibilityPotion.setItemMeta(meta);
         
+        reload();
+        
         ShapedRecipe invisRecipe = new ShapedRecipe(invisibleRecipe, invisibleItem);
         invisRecipe.shape("FFF", "FPF", "FFF");
         invisRecipe.setIngredient('F', Material.ITEM_FRAME);
@@ -62,16 +67,13 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         Bukkit.addRecipe(invisRecipe);
         
         getServer().getPluginManager().registerEvents(this, this);
-        InvisiFramesCommand invisiFramesCommand = new InvisiFramesCommand();
+        InvisiFramesCommand invisiFramesCommand = new InvisiFramesCommand(this);
         getCommand("iframe").setExecutor(invisiFramesCommand);
         getCommand("iframe").setTabCompleter(invisiFramesCommand);
         
-        for(World world : Bukkit.getWorlds())
+        if(slimesEnabled)
         {
-            for(Chunk chunk : world.getLoadedChunks())
-            {
-                addSlimes(chunk);
-            }
+        
         }
     }
     
@@ -97,6 +99,38 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
                 removeSlimes(chunk);
             }
         }
+    }
+    
+    public void reload()
+    {
+        saveDefaultConfig();
+        reloadConfig();
+        getConfig().options().copyDefaults(true);
+        saveConfig();
+        
+        if(firstLoad)
+        {
+            firstLoad = false;
+            slimesEnabled = !getConfig().getBoolean("slimes-enabled");
+        }
+        if(getConfig().getBoolean("slimes-enabled") != slimesEnabled)
+        {
+            for(World world : Bukkit.getWorlds())
+            {
+                for(Chunk chunk : world.getLoadedChunks())
+                {
+                    if(slimesEnabled)
+                    {
+                        removeSlimes(chunk);
+                    }
+                    else
+                    {
+                        addSlimes(chunk);
+                    }
+                }
+            }
+        }
+        slimesEnabled = getConfig().getBoolean("slimes-enabled");
     }
     
     private boolean isInvisibleRecipe(Recipe recipe)
@@ -224,7 +258,10 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
             ItemFrame itemFrame = (ItemFrame) event.getEntity();
             itemFrame.setVisible(false);
             event.getEntity().getPersistentDataContainer().set(invisibleKey, PersistentDataType.BYTE, (byte) 1);
-            addSlimeFor(itemFrame);
+            if(slimesEnabled)
+            {
+                addSlimeFor(itemFrame);
+            }
         }
     }
     
@@ -237,7 +274,10 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
             return;
         }
         
-        removeSlimeFor((ItemFrame) event.getEntity());
+        if(slimesEnabled)
+        {
+            removeSlimeFor((ItemFrame) event.getEntity());
+        }
         // This is the dumbest possible way to change the drops of an item frame
         // Apparently, there's no api to change the dropped item
         // So this sets up a bounding box that checks for items near the frame and converts them
@@ -280,13 +320,19 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     @EventHandler(ignoreCancelled = true)
     private void onChunkLoad(ChunkLoadEvent event)
     {
-        addSlimes(event.getChunk());
+        if(slimesEnabled)
+        {
+            addSlimes(event.getChunk());
+        }
     }
     
     @EventHandler(ignoreCancelled = true)
     private void onChunkUnload(ChunkUnloadEvent event)
     {
-        removeSlimes(event.getChunk());
+        if(slimesEnabled)
+        {
+            removeSlimes(event.getChunk());
+        }
     }
     
     @EventHandler(ignoreCancelled = true)
@@ -302,6 +348,11 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     @EventHandler(ignoreCancelled = true)
     private void onPlayerInteractEntity(PlayerInteractEntityEvent event)
     {
+        if(!slimesEnabled)
+        {
+            return;
+        }
+        
         if(event.getRightClicked().getType() == EntityType.ITEM_FRAME &&
                 event.getRightClicked().getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE))
         {
@@ -319,6 +370,11 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     @EventHandler(ignoreCancelled = true)
     private void onEntityDamageByEntity(EntityDamageByEntityEvent event)
     {
+        if(!slimesEnabled)
+        {
+            return;
+        }
+        
         if(event.getEntityType() == EntityType.ITEM_FRAME &&
                 event.getEntity().getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE))
         {
