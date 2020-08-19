@@ -6,6 +6,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.StringUtil;
 
 import java.util.ArrayList;
@@ -51,6 +52,23 @@ public class InvisiFramesCommand implements CommandExecutor, TabCompleter
             sender.sendMessage(ChatColor.GREEN + "Rechecked invisible item frames");
             return true;
         }
+        else if(args[0].equalsIgnoreCase("setitem"))
+        {
+            if(!sender.hasPermission("survivalinvisiframes.setitem"))
+            {
+                sendNoPermissionMessage(sender);
+                return true;
+            }
+            if(!(sender instanceof Player))
+            {
+                sender.sendMessage(ChatColor.RED + "Sorry, you must be a player to use this command!");
+                return true;
+            }
+            ItemStack item = ((Player) sender).getInventory().getItemInMainHand();
+            survivalInvisiframes.setRecipeItem(item);
+            sender.sendMessage(ChatColor.GREEN + "Recipe item updated!");
+            return true;
+        }
         return false;
     }
     
@@ -73,6 +91,10 @@ public class InvisiFramesCommand implements CommandExecutor, TabCompleter
         if(sender.hasPermission("survivalinvisiframes.forcerecheck"))
         {
             options.add("force-recheck");
+        }
+        if(sender.hasPermission("survivalinvisiframes.setitem"))
+        {
+            options.add("setitem");
         }
         List<String> completions = new ArrayList<>();
         StringUtil.copyPartialMatches(args[0], options, completions);

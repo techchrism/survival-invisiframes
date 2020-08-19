@@ -84,6 +84,13 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         }
     }
     
+    public void setRecipeItem(ItemStack item)
+    {
+        getConfig().set("recipe", item);
+        saveConfig();
+        reload();
+    }
+    
     public void reload()
     {
         saveDefaultConfig();
