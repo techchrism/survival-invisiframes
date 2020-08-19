@@ -17,13 +17,10 @@ import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.potion.PotionType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BoundingBox;
 
@@ -50,47 +47,19 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         
         droppedFrames = new HashSet<>();
         
-        ItemStack invisibleItem = generateInvisibleItemFrame();
-        invisibleItem.setAmount(8);
-        
-        ItemStack invisibilityPotion = new ItemStack(Material.LINGERING_POTION);
-        PotionMeta meta = (PotionMeta) invisibilityPotion.getItemMeta();
-        meta.setBasePotionData(new PotionData(PotionType.INVISIBILITY));
-        invisibilityPotion.setItemMeta(meta);
-        
         reload();
-        
-        ShapedRecipe invisRecipe = new ShapedRecipe(invisibleRecipe, invisibleItem);
-        invisRecipe.shape("FFF", "FPF", "FFF");
-        invisRecipe.setIngredient('F', Material.ITEM_FRAME);
-        invisRecipe.setIngredient('P', new RecipeChoice.ExactChoice(invisibilityPotion));
-        Bukkit.addRecipe(invisRecipe);
         
         getServer().getPluginManager().registerEvents(this, this);
         InvisiFramesCommand invisiFramesCommand = new InvisiFramesCommand(this);
         getCommand("iframe").setExecutor(invisiFramesCommand);
         getCommand("iframe").setTabCompleter(invisiFramesCommand);
-        
-        if(slimesEnabled)
-        {
-        
-        }
     }
     
     @Override
     public void onDisable()
     {
         // Remove added recipes on plugin disable
-        Iterator<Recipe> iter = getServer().recipeIterator();
-        while(iter.hasNext())
-        {
-            Recipe check = iter.next();
-            if(isInvisibleRecipe(check))
-            {
-                getLogger().info("Removed recipe");
-                iter.remove();
-            }
-        }
+        removeRecipe();
     
         for(World world : Bukkit.getWorlds())
         {
@@ -101,12 +70,27 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         }
     }
     
+    private void removeRecipe()
+    {
+        Iterator<Recipe> iter = getServer().recipeIterator();
+        while(iter.hasNext())
+        {
+            Recipe check = iter.next();
+            if(isInvisibleRecipe(check))
+            {
+                iter.remove();
+                break;
+            }
+        }
+    }
+    
     public void reload()
     {
         saveDefaultConfig();
         reloadConfig();
         getConfig().options().copyDefaults(true);
         saveConfig();
+        removeRecipe();
         
         if(firstLoad)
         {
@@ -131,6 +115,16 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
             }
         }
         slimesEnabled = getConfig().getBoolean("slimes-enabled");
+    
+        ItemStack invisibleItem = generateInvisibleItemFrame();
+        invisibleItem.setAmount(8);
+        
+        ItemStack invisibilityPotion = getConfig().getItemStack("recipe");
+        ShapedRecipe invisRecipe = new ShapedRecipe(invisibleRecipe, invisibleItem);
+        invisRecipe.shape("FFF", "FPF", "FFF");
+        invisRecipe.setIngredient('F', Material.ITEM_FRAME);
+        invisRecipe.setIngredient('P', new RecipeChoice.ExactChoice(invisibilityPotion));
+        Bukkit.addRecipe(invisRecipe);
     }
     
     public void forceRecheck()
