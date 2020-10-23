@@ -29,7 +29,11 @@ Command | Description | Permission
 ## Config
 ```yaml
 # Whether or not to enable invisible slimes for easily seeing invisible item frames
-slimes-enabled: true
+slimes-enabled: false
+
+# Whether or not to enable invisible item frames glowing when there's no item in them
+# This will also make them visible when there's no item in them
+item-frames-glow: true
 
 # The item in the center of the recipe
 # Recommended to use "/iframe setitem" to change this

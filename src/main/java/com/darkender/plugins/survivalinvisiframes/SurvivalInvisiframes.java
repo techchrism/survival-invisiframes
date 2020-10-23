@@ -36,6 +36,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     private Set<DroppedFrameLocation> droppedFrames;
     
     private boolean slimesEnabled;
+    private boolean framesGlow;
     private boolean firstLoad = true;
     
     @Override
@@ -122,6 +123,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
             }
         }
         slimesEnabled = getConfig().getBoolean("slimes-enabled");
+        framesGlow = getConfig().getBoolean("item-frames-glow");
     
         ItemStack invisibleItem = generateInvisibleItemFrame();
         invisibleItem.setAmount(8);
@@ -136,10 +138,6 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     
     public void forceRecheck()
     {
-        if(!slimesEnabled)
-        {
-            return;
-        }
         for(World world : Bukkit.getWorlds())
         {
             for(ItemFrame frame : world.getEntitiesByClass(ItemFrame.class))
@@ -147,13 +145,24 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
                 if(frame.getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE))
                 {
                     Slime slimeFor = getSlimeFor(frame);
-                    if(frame.getItem().getType() == Material.AIR && slimeFor == null)
+                    if(frame.getItem().getType() == Material.AIR && slimeFor == null && slimesEnabled)
                     {
                         addSlimeFor(frame);
                     }
                     else if(frame.getItem().getType() != Material.AIR && slimeFor != null)
                     {
                         slimeFor.remove();
+                    }
+                    
+                    if(frame.getItem().getType() == Material.AIR && framesGlow)
+                    {
+                        frame.setGlowing(true);
+                        frame.setVisible(true);
+                    }
+                    else if(frame.getItem().getType() != Material.AIR)
+                    {
+                        frame.setGlowing(false);
+                        frame.setVisible(false);
                     }
                 }
             }
@@ -295,7 +304,15 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
                 return;
             }
             ItemFrame itemFrame = (ItemFrame) event.getEntity();
-            itemFrame.setVisible(false);
+            if(framesGlow)
+            {
+                itemFrame.setVisible(true);
+                itemFrame.setGlowing(true);
+            }
+            else
+            {
+                itemFrame.setVisible(false);
+            }
             event.getEntity().getPersistentDataContainer().set(invisibleKey, PersistentDataType.BYTE, (byte) 1);
             if(slimesEnabled)
             {
@@ -401,6 +418,8 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
                 if(frame.getItem().getType() != Material.AIR)
                 {
                     removeSlimeFor(frame);
+                    frame.setGlowing(false);
+                    frame.setVisible(false);
                 }
             }, 1L);
         }
@@ -423,6 +442,11 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
                 if(frame.getItem().getType() == Material.AIR)
                 {
                     addSlimeFor(frame);
+                    if(framesGlow)
+                    {
+                        frame.setGlowing(true);
+                        frame.setVisible(true);
+                    }
                 }
             }, 1L);
         }
