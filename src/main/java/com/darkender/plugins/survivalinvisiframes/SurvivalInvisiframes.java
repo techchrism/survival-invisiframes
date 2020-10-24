@@ -404,7 +404,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     @EventHandler(ignoreCancelled = true)
     private void onPlayerInteractEntity(PlayerInteractEntityEvent event)
     {
-        if(!slimesEnabled)
+        if(!slimesEnabled && !framesGlow)
         {
             return;
         }
@@ -428,7 +428,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     @EventHandler(ignoreCancelled = true)
     private void onEntityDamageByEntity(EntityDamageByEntityEvent event)
     {
-        if(!slimesEnabled)
+        if(!slimesEnabled && !framesGlow)
         {
             return;
         }
@@ -441,7 +441,10 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
             {
                 if(frame.getItem().getType() == Material.AIR)
                 {
-                    addSlimeFor(frame);
+                    if(slimesEnabled)
+                    {
+                        addSlimeFor(frame);
+                    }
                     if(framesGlow)
                     {
                         frame.setGlowing(true);
