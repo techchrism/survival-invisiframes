@@ -93,8 +93,8 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         }
         if(getConfig().getBoolean("item-frames-glow") != framesGlow)
         {
-            forceRecheck();
             framesGlow = getConfig().getBoolean("item-frames-glow");
+            forceRecheck();
         }
     
         ItemStack invisibleItem = generateInvisibleItemFrame();
