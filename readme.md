@@ -5,6 +5,8 @@ This plugin enables the use of 1.16's invisible item frames for survival players
 Invisible item frames are crafted similar to tipped arrows - one lingering invisibility potion surrounded by 8 item frames\
 ![Recipe Screenshot](https://i.imgur.com/RtX84ic.png)
 
+In 1.17+, an invisible item frame can be crafted with a glow ink sac to create a glowing invisible item frame
+
 ## Permissions
 Permission | Description
 --- | ---
