@@ -52,7 +52,7 @@ public class InvisiFramesCommand implements CommandExecutor, TabCompleter
             sender.sendMessage(ChatColor.GREEN + "Rechecked invisible item frames");
             return true;
         }
-        else if(args[0].equalsIgnoreCase("setitem"))
+        else if(args[0].equalsIgnoreCase("additem") || args[0].equalsIgnoreCase("removeitem"))
         {
             if(!sender.hasPermission("survivalinvisiframes.setitem"))
             {
@@ -65,8 +65,25 @@ public class InvisiFramesCommand implements CommandExecutor, TabCompleter
                 return true;
             }
             ItemStack item = ((Player) sender).getInventory().getItemInMainHand();
-            survivalInvisiframes.setRecipeItem(item);
-            sender.sendMessage(ChatColor.GREEN + "Recipe item updated!");
+            if(args[0].equalsIgnoreCase("additem"))
+            {
+                if (survivalInvisiframes.getRecipeCenterItems().contains(item))
+                {
+                    sender.sendMessage(ChatColor.RED + "That item is already added!");
+                    return true;
+                }
+                survivalInvisiframes.addRecipeItem(item);
+            }
+            else if(args[0].equalsIgnoreCase("removeitem"))
+            {
+                if (!survivalInvisiframes.getRecipeCenterItems().contains(item))
+                {
+                    sender.sendMessage(ChatColor.RED + "That item is not already added!");
+                    return true;
+                }
+                survivalInvisiframes.removeRecipeItem(item);
+            }
+            sender.sendMessage(ChatColor.GREEN + "Recipe items updated!");
             return true;
         }
         return false;
@@ -94,7 +111,8 @@ public class InvisiFramesCommand implements CommandExecutor, TabCompleter
         }
         if(sender.hasPermission("survivalinvisiframes.setitem"))
         {
-            options.add("setitem");
+            options.add("additem");
+            options.add("removeitem");
         }
         List<String> completions = new ArrayList<>();
         StringUtil.copyPartialMatches(args[0], options, completions);
