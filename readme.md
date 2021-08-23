@@ -16,7 +16,7 @@ Permission | Description
 `survivalinvisiframes.reload` | Permission to run `/iframe reload`
 `survivalinvisiframes.forcerecheck` | Permission to run `/iframe force-recheck`
 `survivalinvisiframes.get` | Permission to run `/iframe get`
-`survivalinvisiframes.setitem` | Permission to run `/iframe setitem`
+`survivalinvisiframes.setitem` | Permission to run `/iframe additem` and `/iframe removeitem`
 
 ## Commands
 Permission required for all commands: `survivalinvisiframes.cmd`
@@ -26,7 +26,8 @@ Command | Description | Permission
 `/iframe` or `/iframe get` | Gives the player an invisible item frame | `survivalinvisiframes.get`
 `/iframe reload` | Reloads the config | `survivalinvisiframes.reload`
 `/iframe force-recheck` | Rechecks all loaded invisible item frames to add/remove slimes manually | `survivalinvisiframes.forcerecheck`
-`/iframe setitem` | Sets the recipe center item to the held item | `survivalinvisiframes.setitem`
+`/iframe additem` | Adds the held item to the list of recipe center items | `survivalinvisiframes.setitem`
+`/iframe removeitem` | Removes the held item from the list of recipe center items | `survivalinvisiframes.setitem`
 
 ## Config
 ```yaml
@@ -35,13 +36,20 @@ Command | Description | Permission
 item-frames-glow: true
 
 # The item in the center of the recipe
-# Recommended to use "/iframe setitem" to change this
-recipe:
-  ==: org.bukkit.inventory.ItemStack
-  v: 2567
-  type: LINGERING_POTION
-  meta:
-    ==: ItemMeta
-    meta-type: POTION
-    potion-type: minecraft:invisibility
+# Recommended to use "/iframe additem" and "/iframe removeitem" to change this
+recipe-center-items:
+  - ==: org.bukkit.inventory.ItemStack
+    v: 2567
+    type: LINGERING_POTION
+    meta:
+      ==: ItemMeta
+      meta-type: POTION
+      potion-type: minecraft:invisibility
+  - ==: org.bukkit.inventory.ItemStack
+    v: 2567
+    type: LINGERING_POTION
+    meta:
+      ==: ItemMeta
+      meta-type: POTION
+      potion-type: minecraft:long_invisibility
 ```
