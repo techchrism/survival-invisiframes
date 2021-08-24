@@ -18,9 +18,12 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class SurvivalInvisiframes extends JavaPlugin implements Listener
 {
@@ -51,7 +54,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
             glowFrameEntity = EntityType.valueOf("GLOW_ITEM_FRAME");
         }
         catch(IllegalArgumentException ignored) {}
-        
+
         reload();
         
         getServer().getPluginManager().registerEvents(this, this);
@@ -80,14 +83,35 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
             }
         }
     }
-    
-    public void setRecipeItem(ItemStack item)
+
+    private static final String recipeCenterItems = "recipe-center-items";
+
+    public void addRecipeItem(ItemStack item)
     {
-        getConfig().set("recipe", item);
+        final List<ItemStack> recipeItems = new ArrayList<>(getRecipeCenterItems());
+        recipeItems.add(item);
+        setRecipeItems(recipeItems);
+    }
+
+    public void removeRecipeItem(ItemStack item)
+    {
+        final List<ItemStack> recipeItems = new ArrayList<>(getRecipeCenterItems());
+        recipeItems.remove(item);
+        setRecipeItems(recipeItems);
+    }
+
+    private void setRecipeItems(List<ItemStack> recipeItems)
+    {
+        getConfig().set(recipeCenterItems, recipeItems.stream().distinct().collect(Collectors.toList()));
         saveConfig();
         reload();
     }
-    
+
+    List<ItemStack> getRecipeCenterItems()
+    {
+        return (List<ItemStack>) getConfig().getList(recipeCenterItems);
+    }
+
     public void reload()
     {
         saveDefaultConfig();
@@ -109,15 +133,14 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     
         ItemStack invisibleItem = generateInvisibleItemFrame();
         invisibleItem.setAmount(8);
-        
-        ItemStack invisibilityPotion = getConfig().getItemStack("recipe");
+
         ShapedRecipe invisRecipe = new ShapedRecipe(invisibleRecipe, invisibleItem);
         invisRecipe.shape("FFF", "FPF", "FFF");
         invisRecipe.setIngredient('F', Material.ITEM_FRAME);
-        invisRecipe.setIngredient('P', new RecipeChoice.ExactChoice(invisibilityPotion));
+        invisRecipe.setIngredient('P', new RecipeChoice.ExactChoice(getRecipeCenterItems()));
         Bukkit.addRecipe(invisRecipe);
     }
-    
+
     public void forceRecheck()
     {
         for(World world : Bukkit.getWorlds())
