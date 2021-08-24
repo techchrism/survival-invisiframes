@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 
 public class SurvivalInvisiframes extends JavaPlugin implements Listener
 {
-    private List<NamespacedKey> invisibleRecipeKeys = new ArrayList<>();
+    private NamespacedKey invisibleRecipe;
     private static NamespacedKey invisibleKey;
     private Set<DroppedFrameLocation> droppedFrames;
     
@@ -42,6 +42,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     @Override
     public void onEnable()
     {
+        invisibleRecipe = new NamespacedKey(this, "invisible-recipe");
         invisibleKey = new NamespacedKey(this, "invisible");
         
         droppedFrames = new HashSet<>();
@@ -66,10 +67,10 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     public void onDisable()
     {
         // Remove added recipes on plugin disable
-        removeRecipes();
+        removeRecipe();
     }
     
-    private void removeRecipes()
+    private void removeRecipe()
     {
         Iterator<Recipe> iter = getServer().recipeIterator();
         while(iter.hasNext())
@@ -78,10 +79,9 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
             if(isInvisibleRecipe(check))
             {
                 iter.remove();
+                break;
             }
         }
-
-        invisibleRecipeKeys.clear();
     }
 
     private static final String recipeCenterItems = "recipe-center-items";
@@ -118,7 +118,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         reloadConfig();
         getConfig().options().copyDefaults(true);
         saveConfig();
-        removeRecipes();
+        removeRecipe();
         
         if(firstLoad)
         {
@@ -134,18 +134,11 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         ItemStack invisibleItem = generateInvisibleItemFrame();
         invisibleItem.setAmount(8);
 
-        final List<ItemStack> recipeCenterItems = getRecipeCenterItems();
-        for (int i = 0; i < recipeCenterItems.size(); i++)
-        {
-            NamespacedKey recipeKey = new NamespacedKey(this, "iframe-recipe-" + i);
-            invisibleRecipeKeys.add(recipeKey);
-            ItemStack invisibilityPotion = recipeCenterItems.get(i);
-            ShapedRecipe invisRecipe = new ShapedRecipe(recipeKey, invisibleItem);
-            invisRecipe.shape("FFF", "FPF", "FFF");
-            invisRecipe.setIngredient('F', Material.ITEM_FRAME);
-            invisRecipe.setIngredient('P', new RecipeChoice.ExactChoice(invisibilityPotion));
-            Bukkit.addRecipe(invisRecipe);
-        }
+        ShapedRecipe invisRecipe = new ShapedRecipe(invisibleRecipe, invisibleItem);
+        invisRecipe.shape("FFF", "FPF", "FFF");
+        invisRecipe.setIngredient('F', Material.ITEM_FRAME);
+        invisRecipe.setIngredient('P', new RecipeChoice.ExactChoice(getRecipeCenterItems()));
+        Bukkit.addRecipe(invisRecipe);
     }
 
     public void forceRecheck()
@@ -173,7 +166,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     
     private boolean isInvisibleRecipe(Recipe recipe)
     {
-        return recipe instanceof ShapedRecipe && invisibleRecipeKeys.contains(((ShapedRecipe) recipe).getKey());
+        return (recipe instanceof ShapedRecipe && ((ShapedRecipe) recipe).getKey().equals(invisibleRecipe));
     }
     
     private boolean isFrameEntity(Entity entity)
