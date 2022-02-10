@@ -1,7 +1,9 @@
 # Whether or not to enable invisible item frames glowing when there's no item in them
 # This will also make them visible when there's no item in them
 item-frames-glow: true
-
+# Display names of item frames
+display_name: "Invisible Item Frame"
+display_name_glow: "Glow Invisible Item Frame"
 # The item in the center of the recipe
 # Recommended to use "/iframe setitem" to change this
 recipe:
