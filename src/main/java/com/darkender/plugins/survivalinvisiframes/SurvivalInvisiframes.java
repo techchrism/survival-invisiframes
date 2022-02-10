@@ -35,7 +35,10 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     private Material glowInkSac = null;
     private Material glowFrame = null;
     private EntityType glowFrameEntity = null;
-    
+
+    private String display_name;
+    private String display_name_glow;
+
     @Override
     public void onEnable()
     {
@@ -106,7 +109,8 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
             framesGlow = getConfig().getBoolean("item-frames-glow");
             forceRecheck();
         }
-    
+        display_name = getConfig().getString("display_name");
+        display_name_glow = getConfig().getString("display_name_glow");
         ItemStack invisibleItem = generateInvisibleItemFrame();
         invisibleItem.setAmount(8);
         
@@ -158,7 +162,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         ItemMeta meta = item.getItemMeta();
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         meta.addEnchant(Enchantment.DURABILITY, 1 ,true);
-        meta.setDisplayName(ChatColor.WHITE + "Invisible Item Frame");
+        meta.setDisplayName(ChatColor.WHITE + display_name);
         meta.getPersistentDataContainer().set(invisibleKey, PersistentDataType.BYTE, (byte) 1);
         item.setItemMeta(meta);
         return item;
@@ -202,7 +206,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
             {
                 ItemStack invisibleGlowingItem = generateInvisibleItemFrame();
                 ItemMeta meta = invisibleGlowingItem.getItemMeta();
-                meta.setDisplayName(ChatColor.WHITE + "Glow Invisible Item Frame");
+                meta.setDisplayName(ChatColor.WHITE + display_name_glow);
                 invisibleGlowingItem.setItemMeta(meta);
                 invisibleGlowingItem.setType(glowFrame);
                 
@@ -301,7 +305,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
                 if(glowFrame != null && item.getItemStack().getType() == glowFrame)
                 {
                     ItemMeta meta = frame.getItemMeta();
-                    meta.setDisplayName(ChatColor.WHITE + "Glow Invisible Item Frame");
+                    meta.setDisplayName(ChatColor.WHITE + display_name_glow);
                     frame.setItemMeta(meta);
                     frame.setType(glowFrame);
                 }
