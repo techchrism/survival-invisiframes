@@ -36,7 +36,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     private Material glowFrame = null;
     private EntityType glowFrameEntity = null;
 
-    private String display_name;
+    private static String display_name;
     private String display_name_glow;
 
     @Override
