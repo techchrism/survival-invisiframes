@@ -23,3 +23,5 @@ permissions:
     default: op
   survivalinvisiframes.setitem:
     default: op
+  survivalinvisiframes.give:
+    default: op

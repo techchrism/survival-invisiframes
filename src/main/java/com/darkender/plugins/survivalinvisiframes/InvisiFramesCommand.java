@@ -1,5 +1,9 @@
 package com.darkender.plugins.survivalinvisiframes;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -8,10 +12,6 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.StringUtil;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 public class InvisiFramesCommand implements CommandExecutor, TabCompleter
 {
@@ -69,6 +69,42 @@ public class InvisiFramesCommand implements CommandExecutor, TabCompleter
             sender.sendMessage(ChatColor.GREEN + "Recipe item updated!");
             return true;
         }
+        else if (args[0].equalsIgnoreCase("give"))
+        {
+            if(!sender.hasPermission("survivalinvisiframes.give"))
+            {
+                sendNoPermissionMessage(sender);
+                return true;
+            }
+            if(args.length < 2)
+            {
+                sender.sendMessage(ChatColor.RED + "Usage: /invisiframes give <player> <amount>");
+                return true;
+            }
+            Player player = survivalInvisiframes.getServer().getPlayer(args[1]);
+            if(player == null)
+            {
+                sender.sendMessage(ChatColor.RED + "Sorry, that player is not online!");
+                return true;
+            }
+            int amount = 1;
+            if(args.length >= 3)
+            {
+                try
+                {
+                    amount = Integer.parseInt(args[2]);
+                }
+                catch(NumberFormatException e)
+                {
+                    sender.sendMessage(ChatColor.RED + "Sorry, that is not a valid number!");
+                    return true;
+                }
+            }
+            player.getInventory().addItem(SurvivalInvisiframes.generateInvisibleItemFrame(amount));
+            // player.sendMessage(ChatColor.GREEN + "Added an invisible item frame to your inventory");
+            // sender.sendMessage(ChatColor.GREEN + "Added an invisible item frame to " + player.getName() + "'s inventory");
+            return true;
+        }
         return false;
     }
     
@@ -95,6 +131,10 @@ public class InvisiFramesCommand implements CommandExecutor, TabCompleter
         if(sender.hasPermission("survivalinvisiframes.setitem"))
         {
             options.add("setitem");
+        }
+        if(sender.hasPermission("survivalinvisiframes.give"))
+        {
+            options.add("give");
         }
         List<String> completions = new ArrayList<>();
         StringUtil.copyPartialMatches(args[0], options, completions);

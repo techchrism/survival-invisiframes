@@ -12,3 +12,8 @@ recipe:
     ==: ItemMeta
     meta-type: POTION
     potion-type: minecraft:invisibility
+
+
+# The item name
+item-name: "§fInvisible Item Frame"
+glowing-item-name: "§fGlow Invisible Item Frame"
