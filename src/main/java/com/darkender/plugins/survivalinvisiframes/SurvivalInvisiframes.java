@@ -31,6 +31,8 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     private Set<DroppedFrameLocation> droppedFrames;
     
     private boolean framesGlow;
+    private String framesName;
+    private String glowFramesName;
     private boolean firstLoad = true;
     
     // Stays null if not in 1.17
@@ -103,10 +105,14 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         {
             firstLoad = false;
             framesGlow = !getConfig().getBoolean("item-frames-glow");
+            framesName = getConfig().getString("item-name");
+            glowFramesName = getConfig().getString("glowing-item-name");
         }
         if(getConfig().getBoolean("item-frames-glow") != framesGlow)
         {
             framesGlow = getConfig().getBoolean("item-frames-glow");
+            framesName = getConfig().getString("item-name");
+            glowFramesName = getConfig().getString("glowing-item-name");
             forceRecheck();
         }
     
@@ -161,7 +167,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         ItemMeta meta = item.getItemMeta();
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         meta.addEnchant(Enchantment.DURABILITY, 1 ,true);
-        meta.setDisplayName(getInstance().getConfig().getString("item-name"));
+        meta.setDisplayName(getInstance().framesName);
         meta.getPersistentDataContainer().set(invisibleKey, PersistentDataType.BYTE, (byte) 1);
         item.setItemMeta(meta);
         return item;
@@ -173,7 +179,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         ItemMeta meta = item.getItemMeta();
         meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         meta.addEnchant(Enchantment.DURABILITY, 1 ,true);
-        meta.setDisplayName(getInstance().getConfig().getString("item-name"));
+        meta.setDisplayName(getInstance().framesName);
         meta.getPersistentDataContainer().set(invisibleKey, PersistentDataType.BYTE, (byte) 1);
         item.setItemMeta(meta);
         return item;
@@ -217,7 +223,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
             {
                 ItemStack invisibleGlowingItem = generateInvisibleItemFrame();
                 ItemMeta meta = invisibleGlowingItem.getItemMeta();
-                meta.setDisplayName(getConfig().getString("glowing-item-name"));
+                meta.setDisplayName(glowFramesName);
                 invisibleGlowingItem.setItemMeta(meta);
                 invisibleGlowingItem.setType(glowFrame);
                 
@@ -316,7 +322,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
                 if(glowFrame != null && item.getItemStack().getType() == glowFrame)
                 {
                     ItemMeta meta = frame.getItemMeta();
-                    meta.setDisplayName(getConfig().getString("glowing-item-name"));
+                    meta.setDisplayName(glowFramesName);
                     frame.setItemMeta(meta);
                     frame.setType(glowFrame);
                 }
