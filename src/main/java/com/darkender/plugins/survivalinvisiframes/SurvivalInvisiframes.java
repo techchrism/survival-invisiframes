@@ -1,8 +1,18 @@
 package com.darkender.plugins.survivalinvisiframes;
 
-import org.bukkit.*;
+import me.nahu.scheduler.wrapper.FoliaWrappedJavaPlugin;
+import me.nahu.scheduler.wrapper.runnable.WrappedRunnable;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.World;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Item;
+import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -12,17 +22,19 @@ import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.inventory.*;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.RecipeChoice;
+import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-public class SurvivalInvisiframes extends JavaPlugin implements Listener
+public class SurvivalInvisiframes extends FoliaWrappedJavaPlugin implements Listener
 {
     private NamespacedKey invisibleRecipe;
     private static NamespacedKey invisibleKey;
@@ -39,6 +51,8 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
     @Override
     public void onEnable()
     {
+        getLogger().info("Successfully initialized scheduler of type: " + getScheduler().getImplementationType());
+
         invisibleRecipe = new NamespacedKey(this, "invisible-recipe");
         invisibleKey = new NamespacedKey(this, "invisible");
         
@@ -272,14 +286,14 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
         // So this sets up a bounding box that checks for items near the frame and converts them
         DroppedFrameLocation droppedFrameLocation = new DroppedFrameLocation(event.getEntity().getLocation());
         droppedFrames.add(droppedFrameLocation);
-        droppedFrameLocation.setRemoval((new BukkitRunnable()
+        droppedFrameLocation.setRemoval((new WrappedRunnable()
         {
             @Override
             public void run()
             {
                 droppedFrames.remove(droppedFrameLocation);
             }
-        }).runTaskLater(this, 20L));
+        }).runTaskLaterAtLocation(this, event.getEntity().getLocation(), 20L));
     }
     
     @EventHandler
@@ -326,7 +340,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
                 event.getRightClicked().getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE))
         {
             ItemFrame frame = (ItemFrame) event.getRightClicked();
-            Bukkit.getScheduler().runTaskLater(this, () ->
+            getScheduler().runTaskLaterAtEntity(frame, () ->
             {
                 if(frame.getItem().getType() != Material.AIR)
                 {
@@ -349,7 +363,7 @@ public class SurvivalInvisiframes extends JavaPlugin implements Listener
                 event.getEntity().getPersistentDataContainer().has(invisibleKey, PersistentDataType.BYTE))
         {
             ItemFrame frame = (ItemFrame) event.getEntity();
-            Bukkit.getScheduler().runTaskLater(this, () ->
+            getScheduler().runTaskLaterAtEntity(frame, () ->
             {
                 if(frame.getItem().getType() == Material.AIR)
                 {
