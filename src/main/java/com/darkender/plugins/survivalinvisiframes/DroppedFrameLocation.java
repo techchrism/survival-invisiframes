@@ -1,14 +1,14 @@
 package com.darkender.plugins.survivalinvisiframes;
 
+import me.nahu.scheduler.wrapper.task.WrappedTask;
 import org.bukkit.Location;
 import org.bukkit.entity.Item;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BoundingBox;
 
 public class DroppedFrameLocation
 {
     private final BoundingBox box;
-    private BukkitTask removal;
+    private WrappedTask removal;
     
     public DroppedFrameLocation(Location location)
     {
@@ -20,12 +20,12 @@ public class DroppedFrameLocation
         return box.contains(item.getBoundingBox());
     }
     
-    public BukkitTask getRemoval()
+    public WrappedTask getRemoval()
     {
         return removal;
     }
     
-    public void setRemoval(BukkitTask removal)
+    public void setRemoval(WrappedTask removal)
     {
         this.removal = removal;
     }
